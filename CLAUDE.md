@@ -121,19 +121,87 @@ When the user asks about their n8n workflows, use these MCP tools:
 - `getExecutions(workflowId)` - Get execution history
 
 #### Creating Workflows for the User
-1. **Search for similar examples** in `workflows/` directory
-2. **Use existing patterns** as templates
-3. **Modify for user's needs** with their specific requirements
-4. **Test locally** if possible before deploying
+
+**IMPORTANT**: Always use the 2,055+ example workflows as templates. Never create from scratch.
+
+1. **Search for similar examples** in `workflows/` directory:
+   ```python
+   # Start documentation server
+   python3 run.py
+   
+   # Search via API
+   curl "http://localhost:8000/api/workflows?q=[service_name]"
+   ```
+
+2. **Identify patterns to reuse**:
+   - Find workflows with similar triggers (Webhook, Scheduled, Manual)
+   - Look for workflows using the same services
+   - Check complexity level to match user needs
+
+3. **Combine multiple examples**:
+   - Take trigger from one workflow
+   - Processing logic from another
+   - Output/notification from a third
+   - This is how to create complex workflows quickly
+
+4. **Modify for user's needs**:
+   - Replace service nodes (e.g., Telegram → Discord)
+   - Adjust parameters and settings
+   - Add user's specific business logic
+
 5. **Deploy via MCP** to user's n8n instance
 
 #### Workflow Development Process
-1. **Understand requirement**: Ask clarifying questions
-2. **Find examples**: Search the 2,055+ workflows for similar use cases
-3. **Create/modify**: Build workflow JSON based on examples
-4. **Add error handling**: Include error nodes for robustness
-5. **Deploy**: Use MCP to create/update in user's n8n
-6. **Document**: Explain what the workflow does
+
+1. **Understand requirement**: Ask clarifying questions about:
+   - Trigger type needed
+   - Services to integrate
+   - Data flow requirements
+   - Error handling needs
+
+2. **Find examples** (ALWAYS DO THIS FIRST):
+   ```bash
+   # Search by service
+   curl "http://localhost:8000/api/workflows?q=telegram"
+   
+   # Search by multiple services
+   curl "http://localhost:8000/api/workflows?q=gmail+sheets"
+   
+   # Filter by trigger type
+   curl "http://localhost:8000/api/workflows?trigger=Scheduled"
+   ```
+
+3. **Analyze example structure**:
+   - Note the node types used
+   - Understand the connection flow
+   - Identify reusable patterns
+
+4. **Create/modify workflow**:
+   - Start with closest matching example
+   - Modify nodes and connections
+   - Add error handling from error workflow examples
+   - Test with sample data
+
+5. **Deploy and test**:
+   - Use MCP createWorkflow or updateWorkflow
+   - Execute with test data
+   - Verify error handling works
+
+6. **Document**: Explain:
+   - Which examples were used as base
+   - What modifications were made
+   - Any credentials user needs to configure
+
+#### Example Workflow Creation
+
+User asks: "Create a workflow that monitors RSS feeds and posts summaries to Discord"
+
+Your process:
+1. Search for RSS workflows: Find `0748_Noop_Telegram_Automation_Scheduled.json` (RSS to Telegram)
+2. Search for Discord workflows: Find `0525_Bannerbear_Discord_Create_Webhook.json` (Discord posting)
+3. Search for summarization: Find workflows with OpenAI nodes
+4. Combine: RSS fetch → OpenAI summarize → Discord post
+5. Deploy via MCP
 
 ### Environment Setup
 - API URL: `https://agent.blurtai.xyz`
