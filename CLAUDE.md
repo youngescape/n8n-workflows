@@ -105,15 +105,76 @@ When assisting with this repository:
 When the user mentions "my flows" or provides URLs like `https://agent.blurtai.xyz/workflow/[ID]`, these should be accessed through the n8n MCP server configured in mcp.json. Do not attempt to fetch these URLs directly via WebFetch - use the appropriate n8n MCP tools instead.
 
 ### Workflow Naming Conventions
-[Add any specific naming conventions here]
+- Format: `[ServiceName]_[Action]_[TriggerType].json`
+- Examples: `Telegram_Automate_Triggered.json`, `Discord_Create_Webhook.json`
+- Use PascalCase for service names and actions
+
+### n8n MCP Integration Instructions
+
+#### Available MCP Commands
+When the user asks about their n8n workflows, use these MCP tools:
+- `listWorkflows()` - Get all workflows from the user's n8n instance
+- `getWorkflow(id)` - Get specific workflow details
+- `createWorkflow(data)` - Create new workflow
+- `updateWorkflow(id, data)` - Update existing workflow
+- `executeWorkflow(id, data)` - Run a workflow with data
+- `getExecutions(workflowId)` - Get execution history
+
+#### Creating Workflows for the User
+1. **Search for similar examples** in `workflows/` directory
+2. **Use existing patterns** as templates
+3. **Modify for user's needs** with their specific requirements
+4. **Test locally** if possible before deploying
+5. **Deploy via MCP** to user's n8n instance
+
+#### Workflow Development Process
+1. **Understand requirement**: Ask clarifying questions
+2. **Find examples**: Search the 2,055+ workflows for similar use cases
+3. **Create/modify**: Build workflow JSON based on examples
+4. **Add error handling**: Include error nodes for robustness
+5. **Deploy**: Use MCP to create/update in user's n8n
+6. **Document**: Explain what the workflow does
+
+### Environment Setup
+- API URL: `https://agent.blurtai.xyz`
+- API Key: Loaded from `.env` file (never hardcode)
+- MCP Wrapper: `./n8n-mcp-wrapper.sh`
 
 ### Special Considerations
-[Add any other special considerations here]
+- **Security**: Never expose API keys or credentials in code
+- **Testing**: Always suggest testing workflows before production use
+- **Credentials**: Remind user to configure credentials in n8n UI
+- **Error Handling**: Always include error handling nodes
+- **Documentation**: Provide clear descriptions for complex workflows
+
+## Quick Reference for Claude
+
+### To search workflows:
+```python
+# Start server if needed
+python3 run.py
+
+# Search via API
+curl "http://localhost:8000/api/workflows?q=telegram"
+```
+
+### To create a new workflow:
+1. Find similar example in `workflows/`
+2. Modify the JSON structure
+3. Use MCP to deploy to user's n8n
+
+### To help user with workflows:
+1. **List their workflows**: Use MCP listWorkflows
+2. **Show specific workflow**: Use MCP getWorkflow
+3. **Create new**: Build JSON and use MCP createWorkflow
+4. **Update existing**: Modify and use MCP updateWorkflow
+5. **Test execution**: Use MCP executeWorkflow with test data
 
 ## Version Compatibility
-- n8n version: [Specify the n8n version these workflows are compatible with]
-- Last updated: [Date of last major update]
-- Migration notes: [Any version-specific considerations]
+- n8n version: 1.0+ (compatible with latest)
+- MCP Integration: v1.0.0
+- Last updated: 2025-01-12
+- Python: 3.7+ required
 
 ---
 
