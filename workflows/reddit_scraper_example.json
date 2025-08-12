@@ -1,0 +1,175 @@
+{
+  "name": "Reddit Scraper Example",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [250, 300],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "http_auth",
+      "name": "Reddit OAuth Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.reddit.com/api/v1/access_token",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot/1.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "reddit_app_credentials",
+          "name": "Reddit App Credentials"
+        }
+      },
+      "typeVersion": 4.1,
+      "continueOnFail": true
+    },
+    {
+      "id": "get_posts",
+      "name": "Get Subreddit Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://oauth.reddit.com/r/{{ $('Workflow Variables').item.json.subreddit }}/hot.json",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot/1.0"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Reddit OAuth Token').item.json.access_token }}"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "={{ $('Workflow Variables').item.json.limit }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "typeVersion": 4.1,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "parse_posts",
+      "name": "Parse Reddit Posts",
+      "type": "n8n-nodes-base.code",
+      "position": [850, 300],
+      "parameters": {
+        "language": "javascript",
+        "code": "const posts = $input.first().json.data.children;\n\nreturn posts.map(post => {\n  const data = post.data;\n  return {\n    json: {\n      id: data.id,\n      title: data.title,\n      author: data.author,\n      subreddit: data.subreddit,\n      score: data.score,\n      num_comments: data.num_comments,\n      created_utc: new Date(data.created_utc * 1000).toISOString(),\n      url: data.url,\n      permalink: `https://reddit.com${data.permalink}`,\n      selftext: data.selftext,\n      is_video: data.is_video,\n      thumbnail: data.thumbnail,\n      upvote_ratio: data.upvote_ratio\n    }\n  };\n});"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "vars",
+      "name": "Workflow Variables",
+      "type": "n8n-nodes-base.set",
+      "position": [250, 500],
+      "parameters": {
+        "values": {
+          "values": [
+            {
+              "name": "subreddit",
+              "value": "programming"
+            },
+            {
+              "name": "limit",
+              "value": 25
+            }
+          ]
+        },
+        "options": {}
+      },
+      "typeVersion": 3.2
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Variables": {
+      "main": [
+        [
+          {
+            "node": "Reddit OAuth Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reddit OAuth Token": {
+      "main": [
+        [
+          {
+            "node": "Get Subreddit Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Subreddit Posts": {
+      "main": [
+        [
+          {
+            "node": "Parse Reddit Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null
+}
